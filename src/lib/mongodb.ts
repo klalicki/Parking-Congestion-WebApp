@@ -1,77 +1,72 @@
 import { MongoClient } from "mongodb";
 
-const uri = process.env.MONGODB_URI!;
-const options = {};
+const uri = process.env.MONGODB_URI || "";
 
-let client: MongoClient;
-let clientPromise: Promise<MongoClient>;
+const client = new MongoClient(uri, { socketTimeoutMS: 10000 });
 
-if (!process.env.MONGODB_URI) {
-  throw new Error("Please add your Mongo URI to .env.local");
+/**
+ * This function removes a specific plate number from the scans array based on the provided lot ID.
+ * @param {string} plateNumber - The `plateNumber` parameter is a string that represents the license
+ * plate number of a vehicle that is being scanned out of a parking lot.
+ * @param {string} lotID - The `lotID` parameter is a string that represents the unique identifier of a
+ * parking lot where a vehicle with a specific plate number is being scanned out.
+ */
+export async function scanPlateOut(plateNumber: string, lotID: string) {
+  const lotsColl = client.db("ParkingApp").collection("lots");
+  await lotsColl.updateOne({ lotID: lotID }, {
+    $pull: { scans: { plateNumber: plateNumber } },
+  } as any);
 }
 
-if (process.env.NODE_ENV === "development") {
-  if (!(global as any)._mongoClientPromise) {
-    client = new MongoClient(uri, options);
-    (global as any)._mongoClientPromise = client.connect();
-  }
-  clientPromise = (global as any)._mongoClientPromise;
-} else {
-  client = new MongoClient(uri, options);
-  clientPromise = client.connect();
+/**
+ * The `scanPlateIn` function scans a plate number into a specified parking lot and
+ * updates the database with the new scan information.
+ * @param {string} plateNumber - The `plateNumber` parameter is a string that represents the license
+ * plate number of a vehicle that is being scanned in.
+ * @param {string} lotID - A lotID is a unique identifier for a parking lot in the ParkingApp system.
+ * It helps to distinguish one parking lot from another and is used to track information related to a
+ * specific parking lot.
+ * @returns The `scanPlateIn` function is returning the result of the `findOneAndUpdate` operation on
+ * the `lotsColl` collection after pushing the new scan object into the `scans` array for the specified
+ * `lotID`.
+ */
+export async function scanPlateIn(plateNumber: string, lotID: string) {
+  const lotsColl = client.db("ParkingApp").collection("lots");
+  const newScan = {
+    plateNumber: plateNumber,
+    timestamp: new Date(),
+  };
+  await scanPlateOut(plateNumber, lotID);
+  const result = await lotsColl.findOneAndUpdate(
+    { lotID: lotID },
+    {
+      $push: { scans: newScan },
+    } as any,
+    { returnDocument: "after" }
+  );
+
+  console.log(result);
+  return result;
 }
-
-export default clientPromise;
-
 
 export async function getLotData() {
-  const client = await clientPromise;
-  const db = client.db("parking-app");
-  const lots = await db.collection("lots").find({}).toArray();
-  return lots;
-}
+  const lotsColl = client.db("ParkingApp").collection("lots");
 
-// ✅ Add database functions
-export async function scanPlateIn(plateNumber: string, lotID: string) {
-  const client = await clientPromise;
-  const db = client.db("parking-app");
+  // for each item in this list, get its basic information, plus the number of items in its 'scans' array
+  const result: Array<any> = await lotsColl
+    .aggregate([
+      {
+        $project: {
+          lotID: 1,
+          title: 1,
+          allows: 1,
+          location: 1,
+          capacity: 1,
+          scanCount: { $size: { $ifNull: ["$scans", []] } },
+        },
+      },
+    ])
+    .toArray();
 
-  // Find the lot
-  const lot = await db.collection("lots").findOne({ lotID });
-  if (!lot) throw new Error("Lot not found");
-
-  // Prevent duplicate scans
-  const alreadyScanned = lot.scans?.some(
-    (scan: { plateNumber: string }) => scan.plateNumber === plateNumber
-  );
-  if (alreadyScanned) return;
-
-  // Add plate to the scans list
-  await db.collection("lots").updateOne(
-    { lotID },
-    { $push: { scans: { plateNumber } } } as any
-  );
-
-  // Optionally update lotStatus collection as well
-  await db.collection("lotStatus").updateOne(
-    { lotNumber: lotID },
-    { $push: { scans: { plateNumber } } } as any, 
-    { upsert: true }
-  );
-}
-
-export async function scanPlateOut(plateNumber: string, lotID: string) {
-  const client = await clientPromise;
-  const db = client.db("parking-app");
-
-  // Remove plate from scans in both collections
-  await db.collection("lots").updateOne(
-    { lotID },
-    { $pull: { scans: { plateNumber } } } as any
-  );
-
-  await db.collection("lotStatus").updateOne(
-    { lotNumber: lotID },
-    { $pull: { scans: { plateNumber } } } as any
-  );
+  return result;
 }
