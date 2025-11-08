@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { MapContainer, ImageOverlay, Circle, Tooltip } from 'react-leaflet';
-import { LatLngBoundsExpression } from 'leaflet';
+import L, { LatLngBoundsExpression } from 'leaflet';
 
 const ParkingMap = () => {
   const [lots, setLots] = useState<any[]>([]);
