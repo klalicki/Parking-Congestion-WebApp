@@ -35,16 +35,13 @@ export default function EnforcementDashboard() {
 
   return (
     <main className="p-6 max-w-4xl mx-auto">
-      <BackButton />
       <Box
         display="flex"
         justifyContent="space-between"
         alignItems="center"
         mb={3}
       >
-        <Typography variant="h4" fontWeight="bold">
-          Enforcement
-        </Typography>
+        <Typography variant="h4">Enforcement</Typography>
         <Button variant="outlined" onClick={fetchAlerts}>
           Refresh Now
         </Button>

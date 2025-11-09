@@ -1,20 +1,9 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import CssBaseline from "@mui/material/CssBaseline";
-
+import BottomNav from "./components/BottomNav";
+import TopNav from "./components/TopNav";
 import "./globals.css";
-import { Box } from "@mui/material";
-import Link from "next/link";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+import { Container } from "@mui/material";
 
 export const metadata: Metadata = {
   title: "spotfinder",
@@ -30,17 +19,13 @@ export default function RootLayout({
     <html lang="en">
       <CssBaseline />
 
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
+      <body className={"body-layout"}>
+        <TopNav />
+        <main className="main-grow">
+          <Container maxWidth="lg">{children}</Container>
+        </main>
 
-        <Box sx={{ display: "flex", gap: 2, p: 2 }}>
-          <Link href={"/"}>Home</Link>
-          <Link href={"/enforcement"}>Enforcement</Link>
-          <Link href={"/scanner"}>Scanner API</Link>
-          <Link href={"/parking-lots"}>Parking Lots Overview</Link>
-        </Box>
+        <BottomNav />
       </body>
     </html>
   );

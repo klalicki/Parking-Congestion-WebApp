@@ -47,11 +47,11 @@ export default function Page() {
     setRefresh((refresh) => !refresh);
   };
 
-  const handlePlateChange = (e:any) => {
+  const handlePlateChange = (e: any) => {
     setPlateNumber(e.target.value);
   };
 
-  const handleSelectLot = (e:any) => {
+  const handleSelectLot = (e: any) => {
     setLotID(e.target.value);
   };
   useEffect(() => {
@@ -103,61 +103,62 @@ export default function Page() {
       <Typography variant="h4" gutterBottom>
         Scanner API Test
       </Typography>
-      <Stack
-        direction="row"
-        justifyContent="space-between"
-        alignItems="center"
-        sx={{ mb: 2 }}
-      ></Stack>
-      <FormControl>
-        <InputLabel id="displayModePickerLabel">Parking Lot</InputLabel>
-        <Select
-          labelId="displayModePickerLabel"
-          id="displayModePicker"
-          value={lotID}
-          label="Display Mode"
-          onChange={handleSelectLot}
-        >
-          {lots.map((lot) => {
-            return <MenuItem value={lot.lotID}>{lot.title}</MenuItem>;
-          })}
-        </Select>
-      </FormControl>
+      <Paper elevation={3} sx={{ p: 2, mb: 2 }}>
+        <Stack
+          direction="row"
+          justifyContent="space-between"
+          alignItems="center"
+          sx={{ mb: 2 }}
+        ></Stack>
+        <FormControl>
+          <InputLabel id="displayModePickerLabel">Parking Lot</InputLabel>
+          <Select
+            labelId="displayModePickerLabel"
+            id="displayModePicker"
+            value={lotID}
+            label="Display Mode"
+            onChange={handleSelectLot}
+          >
+            {lots.map((lot) => {
+              return <MenuItem value={lot.lotID}>{lot.title}</MenuItem>;
+            })}
+          </Select>
+        </FormControl>
 
-      {/* a text input to type a license plate, then buttons for entry and exit scans */}
-      {/* text input */}
-      <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
-        <TextField
-          id="outlined-basic"
-          label="License Plate"
-          variant="outlined"
-          value={plateNumber}
-          onChange={handlePlateChange}
-        />
+        {/* a text input to type a license plate, then buttons for entry and exit scans */}
+        {/* text input */}
+        <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
+          <TextField
+            id="outlined-basic"
+            label="License Plate"
+            variant="outlined"
+            value={plateNumber}
+            onChange={handlePlateChange}
+          />
 
-        <Button
-          variant="contained"
-          onClick={() => {
-            addCar(plateNumber);
-            setPlateNumber("");
-          }}
-        >
-          Entry Scan
-        </Button>
-        <Button
-          variant="contained"
-          color="secondary"
-          onClick={() => {
-            removeCar(plateNumber);
-            setPlateNumber("");
-          }}
-        >
-          Exit Scan
-        </Button>
-      </Box>
-
+          <Button
+            variant="contained"
+            onClick={() => {
+              addCar(plateNumber);
+              setPlateNumber("");
+            }}
+          >
+            Entry
+          </Button>
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={() => {
+              removeCar(plateNumber);
+              setPlateNumber("");
+            }}
+          >
+            Exit
+          </Button>
+        </Box>
+      </Paper>
       {currentLotData && (
-        <Paper sx={{ p: 2, mt: 2 }}>
+        <Paper elevation={3} sx={{ p: 2, mt: 2 }}>
           <Typography variant="h4">
             {currentLotData.title}: {currentLotData.scanCount}/
             {currentLotData.capacity} cars
