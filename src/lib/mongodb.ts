@@ -16,7 +16,7 @@ export async function scanPlateOut(plateNumber: string, lotID: string) {
   const cleanedPlate = plateNumber.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
 
   await lotsColl.updateOne({ lotID }, {
-    $pull: { scans: { cleanedPlate } },
+    $pull: { scans: { plateNumber: cleanedPlate } },
   } as any);
 }
 
@@ -32,13 +32,14 @@ export async function scanPlateIn(plateNumber: string, lotID: string) {
     plateNumber: cleanedPlate,
     timestamp: new Date(),
   };
+  const newScanArchive = { ...newScan, type: "entry" };
 
   // Ensure duplicate plates are removed before adding
   await scanPlateOut(cleanedPlate, lotID);
 
   const result = await lotsColl.findOneAndUpdate(
     { lotID },
-    { $push: { scans: newScan } } as any,
+    { $push: { scans: newScan, scanArchive: newScanArchive } } as any,
     { returnDocument: "after" }
   );
 

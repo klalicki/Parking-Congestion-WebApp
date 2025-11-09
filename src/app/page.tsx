@@ -121,7 +121,8 @@ export default function LotsListPage() {
       .then((data) => {
         // Compute derived data fields if not provided
         const processed = data.map((lot: Lot) => {
-          const available = lot.available ?? lot.capacity - lot.scanCount;
+          const available =
+            lot.capacity - lot.scanCount > 0 ? lot.capacity - lot.scanCount : 0;
           return { ...lot, available };
         });
         const filtered = processed.filter((item: Lot) => {

@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import CssBaseline from "@mui/material/CssBaseline";
 
 import "./globals.css";
+import { Box } from "@mui/material";
+import Link from "next/link";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,6 +34,13 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}
+
+        <Box sx={{ display: "flex", gap: 2, p: 2 }}>
+          <Link href={"/"}>Home</Link>
+          <Link href={"/enforcement"}>Enforcement</Link>
+          <Link href={"/scanner"}>Scanner API</Link>
+          <Link href={"/parking-lots"}>Parking Lots Overview</Link>
+        </Box>
       </body>
     </html>
   );

@@ -51,11 +51,6 @@ export default function Page() {
     setPlateNumber(e.target.value);
   };
 
-  const getColor = (percent: number) => {
-    if (percent >= 90) return "error"; // red
-    if (percent >= 70) return "warning"; // yellow
-    return "success"; // green
-  };
   const handleSelectLot = (e) => {
     setLotID(e.target.value);
   };
@@ -140,13 +135,22 @@ export default function Page() {
           onChange={handlePlateChange}
         />
 
-        <Button variant="contained" onClick={() => addCar(plateNumber)}>
+        <Button
+          variant="contained"
+          onClick={() => {
+            addCar(plateNumber);
+            setPlateNumber("");
+          }}
+        >
           Entry Scan
         </Button>
         <Button
           variant="contained"
           color="secondary"
-          onClick={() => removeCar(plateNumber)}
+          onClick={() => {
+            removeCar(plateNumber);
+            setPlateNumber("");
+          }}
         >
           Exit Scan
         </Button>
