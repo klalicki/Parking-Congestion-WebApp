@@ -12,8 +12,11 @@ const client = new MongoClient(uri, {
  */
 export async function scanPlateOut(plateNumber: string, lotID: string) {
   const lotsColl = client.db("ParkingApp").collection("lots");
+
+  const cleanedPlate = plateNumber.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+
   await lotsColl.updateOne({ lotID }, {
-    $pull: { scans: { plateNumber } },
+    $pull: { scans: { cleanedPlate } },
   } as any);
 }
 
@@ -22,13 +25,16 @@ export async function scanPlateOut(plateNumber: string, lotID: string) {
  */
 export async function scanPlateIn(plateNumber: string, lotID: string) {
   const lotsColl = client.db("ParkingApp").collection("lots");
+  // remove all non-alphanumeric characters from plateNumber:
+  const cleanedPlate = plateNumber.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+
   const newScan = {
-    plateNumber,
+    plateNumber: cleanedPlate,
     timestamp: new Date(),
   };
 
   // Ensure duplicate plates are removed before adding
-  await scanPlateOut(plateNumber, lotID);
+  await scanPlateOut(cleanedPlate, lotID);
 
   const result = await lotsColl.findOneAndUpdate(
     { lotID },
@@ -55,6 +61,7 @@ export async function getLotData() {
           allows: 1,
           location: 1,
           capacity: 1,
+          scans: 1,
           scanCount: { $size: { $ifNull: ["$scans", []] } },
         },
       },
