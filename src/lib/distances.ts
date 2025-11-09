@@ -8,7 +8,7 @@
  * @param {number} lon2 - Longitude of the second point in degrees.
  * @returns {number} The distance in kilometers.
  */
-function getDistance(lat1, lon1, lat2, lon2) {
+function getDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
   // Radius of the Earth in kilometers
   const R = 6371;
 
@@ -38,7 +38,7 @@ function getDistance(lat1, lon1, lat2, lon2) {
  * @param {number} deg - The value in degrees.
  * @returns {number} The value in radians.
  */
-function deg2rad(deg) {
+function deg2rad(deg: number) {
   return deg * (Math.PI / 180);
 }
 

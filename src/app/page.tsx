@@ -76,7 +76,7 @@ export default function LotsListPage() {
       (range.distance.max - range.distance.min);
     const spotsScore =
       (lot.available - range.spots.min) / (range.spots.max - range.spots.min);
-    return distanceScore * 0.5 + spotsScore * 0.5;
+    return distanceScore * 0.3 + spotsScore * 0.7;
   };
 
   useEffect(() => {
@@ -140,13 +140,13 @@ export default function LotsListPage() {
     return "success"; // green
   };
 
-  const handleModePicker = (e) => {
+  const handleModePicker = (e:any) => {
     setDisplayMode(e.target.value);
   };
-  const handleBuildingPicker = (e) => {
+  const handleBuildingPicker = (e: any) => {
     setTargetBuilding(e.target.value);
   };
-  const handleSortMode = (e) => {
+  const handleSortMode = (e: any) => {
     setSortMode(e.target.value);
   };
 
