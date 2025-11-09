@@ -6,7 +6,14 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
-import { FormControl, InputLabel, Select, MenuItem } from "@mui/material";
+
+import {
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Button,
+} from "@mui/material";
 import { getDistance } from "@/lib/distances";
 import DirectionsWalkIcon from "@mui/icons-material/DirectionsWalk";
 import { Icon } from "@mui/material";
@@ -35,6 +42,8 @@ interface LotRange {
   };
 }
 
+const REFRESH_INTERVAL = 30;
+
 const calcRanges = (lots: Lot[]): LotRange => {
   let minDistance = Infinity,
     maxDistance = -Infinity,
@@ -54,9 +63,11 @@ const calcRanges = (lots: Lot[]): LotRange => {
 };
 
 export default function LotsListPage() {
+  const [useMinutes, setUseMinutes] = useState<boolean>(true);
   const [lots, setLots] = useState<Lot[]>([]);
   const [loading, setLoading] = useState(true);
-  const [sortAsc, setSortAsc] = useState(true); // toggle for sort order
+  const [refreshTimer, setRefreshTimer] = useState<number>(REFRESH_INTERVAL);
+  const [forceRefresh, setForceRefresh] = useState(false);
   const [displayMode, setDisplayMode] = useState<
     "resident" | "facstaff" | "visitor" | "commuter"
   >("commuter");
@@ -78,9 +89,31 @@ export default function LotsListPage() {
       (range.distance.max - lot.distance) /
       (range.distance.max - range.distance.min);
     const spotsScore =
-      (lot.available - range.spots.min) / (range.spots.max - range.spots.min);
+      lot.available > 50
+        ? 0.7
+        : (lot.available - range.spots.min) /
+          (range.spots.max - range.spots.min);
     return distanceScore * 0.3 + spotsScore * 0.7;
   };
+
+  const decrementTimer = () => {
+    setRefreshTimer((prev) => {
+      if (prev === 0) {
+        setForceRefresh((prev) => !prev);
+
+        return REFRESH_INTERVAL;
+      } else {
+        return prev - 1;
+      }
+    });
+  };
+
+  useEffect(() => {
+    const refreshIntervalID = setInterval(decrementTimer, 1000);
+    return () => {
+      clearInterval(refreshIntervalID);
+    };
+  }, []);
 
   useEffect(() => {
     fetch("/api/lots")
@@ -135,7 +168,11 @@ export default function LotsListPage() {
       })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [displayMode, targetBuilding, sortMode]);
+  }, [displayMode, targetBuilding, sortMode, forceRefresh]);
+
+  const toggleMinutes = () => {
+    setUseMinutes(!useMinutes);
+  };
 
   const getColor = (percent: number) => {
     if (percent >= 90) return "error"; // red
@@ -153,6 +190,10 @@ export default function LotsListPage() {
     setSortMode(e.target.value);
   };
 
+  const refreshPage = () => {
+    setForceRefresh((prev) => !prev);
+  };
+
   if (loading) {
     return (
       <main className="p-6 max-w-3xl mx-auto text-center">
@@ -166,9 +207,18 @@ export default function LotsListPage() {
 
   return (
     <main className="p-6 max-w-3xl mx-auto">
-      <Typography variant="h4" gutterBottom>
-        Lots
-      </Typography>
+      <Stack
+        direction="row"
+        justifyContent="space-between"
+        alignItems="center"
+        sx={{ mb: 2 }}
+      >
+        <Typography variant="h4" gutterBottom>
+          Lots
+        </Typography>
+        <Button onClick={refreshPage}>Refresh ({refreshTimer})</Button>
+      </Stack>
+
       <Stack
         direction="row"
         justifyContent="space-between"
@@ -284,9 +334,14 @@ export default function LotsListPage() {
                 >
                   <Typography variant="h3">
                     <DirectionsWalkIcon />
-                    {lot.distance.toFixed(2)}
-                    <span style={{ fontSize: "1rem", marginLeft: ".25rem" }}>
-                      mi
+                    {useMinutes
+                      ? Math.ceil(lot.distance * 20)
+                      : lot.distance.toFixed(2)}
+                    <span
+                      onClick={toggleMinutes}
+                      style={{ fontSize: "1rem", marginLeft: ".25rem" }}
+                    >
+                      {useMinutes ? "min" : "mi"}
                     </span>
                   </Typography>
                 </Box>
